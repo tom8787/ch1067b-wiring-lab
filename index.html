@@ -18,7 +18,7 @@
     <div class="workspace">
       <section class="bench" aria-label="互動電路板">
         <div class="bench-toolbar"><div class="face-tabs"><button id="backFace" class="active" aria-pressed="true">反面 <span>焊接面</span></button><button id="frontFace" aria-pressed="false">正面 <span>零件面</span></button></div><div class="board-actions"><button id="undo" title="復原 Ctrl+Z" aria-label="復原">↶</button><button id="redo" title="重做 Ctrl+Shift+Z" aria-label="重做">↷</button><span></span><button id="zoomOut" aria-label="縮小">−</button><button id="zoomReset" title="重設縮放">100%</button><button id="zoomIn" aria-label="放大">＋</button></div></div>
-        <div id="boardViewport" class="board-viewport"><div id="boardStage" class="board-stage"><canvas id="photo" width="1200" height="960" aria-label="CH-1067B 電路板實照"></canvas><svg id="board" viewBox="0 0 1000 800" aria-label="點選孔位建立接線"><g id="wires"></g><g id="targets"></g><g id="holes"></g><g id="markers" pointer-events="none"></g></svg></div><div class="board-corner"><span class="live-dot"></span><span id="faceLabel">BACK / 焊接面</span></div></div>
+        <div id="boardViewport" class="board-viewport"><div id="boardStage" class="board-stage"><canvas id="photo" width="1200" height="960" aria-label="CH-1067B 電路板實照"></canvas><svg id="board" viewBox="0 0 1000 800" aria-label="點選孔位建立接線"><g id="components" pointer-events="none" aria-label="原有零件位置"></g><g id="wires"></g><g id="targets"></g><g id="holes"></g><g id="markers" pointer-events="none"></g></svg></div><div class="board-corner"><span class="live-dot"></span><span id="faceLabel">BACK / 焊接面</span><span style="margin-left:14px;color:#cbd2d8;letter-spacing:0">銀色點＝原有零件</span></div></div>
         <div class="bench-status"><span><i></i><span id="instruction">點選任一孔位，開始第一條接線</span></span><span>孔位 <b id="hoverLabel">—</b><span class="status-divider">|</span><b id="wireCount">0</b> 條接線</span></div>
       </section>
       <aside>
@@ -38,5 +38,5 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <dialog id="helpDialog"><button class="dialog-close" aria-label="關閉說明">×</button><div class="eyebrow">GETTING STARTED</div><h2>你的第一條接線</h2><ol class="help-steps"><li><b>選起點與終點</b><p>點選兩個孔位即可接線。也能直接輸入 A1、A5 等座標，再按「建立接線」。</p></li><li><b>翻面核對位置</b><p>切換正面與反面，同一條導線和相同孔位會同步對應。座標統一使用正面絲印；上緣、下緣也以正面文字朝向為準。</p></li><li><b>修改與保存</b><p>點接線清單可選取導線，按刪除按鈕移除。支援復原、重做與 JSON 練習檔匯入匯出。</p></li></ol><div class="help-note">本版包含 USB 區 8 個焊孔及旁邊兩排延伸孔。USB 接點 A～D 是練習用編號，不代表正式腳位功能；固定孔另行標示，不推定電氣連通。表面黏著焊盤尚未開放接線，網站目前不提供正式考試評分。</div><button id="startGuide" class="primary">開始操作教學 →</button></dialog>
   <dialog id="clearDialog"><h2>清空這次的接線？</h2><p>所有導線將移除；清空後仍可按「復原」恢復。</p><div class="dialog-actions"><button id="keepWires" class="outline">保留接線</button><button id="confirmClear" class="primary">清空接線</button></div></dialog>
-  <script type="module" src="app.mjs?v=20261016-usb30"></script>
+  <script type="module" src="app.mjs?v=20261016-silver42"></script>
 </body></html>

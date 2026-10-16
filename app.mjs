@@ -31,8 +31,10 @@ function addWire(){
 function pick(id){if(!start){setStart(id);}else if(start===id){cancel();}else{end=id;$('endPoint').value=byId.get(id).label;addWire();}}
 function renderHoles(){
   $('holes').replaceChildren();
+  $('components').replaceChildren();
   for(const h of holes){const[x,y]=point(h.id);const el=svg('circle',{cx:x,cy:y,r:10,class:'hole','data-hole':h.id,role:'button',tabindex:-1,'aria-label':`孔位 ${h.label}`});
-    el.append(svg('title',{},h.label));el.addEventListener('click',()=>pick(h.id));el.addEventListener('mouseenter',()=>$('hoverLabel').textContent=h.label);el.addEventListener('mouseleave',()=>$('hoverLabel').textContent='—');el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pick(h.id);}});$('holes').append(el);
+    if(h.preinstalled)$('components').append(svg('circle',{cx:x,cy:y,r:6.5,fill:'#cbd2d8',stroke:'#f7fafc','stroke-width':1.2,class:'component-mark','data-component':h.id,'pointer-events':'none'}));
+    el.append(svg('title',{},h.label+(h.preinstalled?'（原有零件）':'')));el.addEventListener('click',()=>pick(h.id));el.addEventListener('mouseenter',()=>$('hoverLabel').textContent=h.label);el.addEventListener('mouseleave',()=>$('hoverLabel').textContent='—');el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pick(h.id);}});$('holes').append(el);
   }
   renderSelection();
 }
@@ -82,7 +84,7 @@ function undo(){if(!undoStack.length)return;redoStack.push(structuredClone(wires
 function redo(){if(!redoStack.length)return;undoStack.push(structuredClone(wires));wires=redoStack.pop();cancel();commit();notify('已重做');}
 function deleteSelected(){if(selected===null)return;snapshot();wires=wires.filter(w=>w.id!==selected);cancel();commit();notify('已刪除接線，可按復原恢復');}
 async function init(){
-  const response=await fetch('holes.json?v=20261016-usb30');if(!response.ok)throw Error('孔位資料讀取失敗，請重新整理。');holes=await response.json();
+  const response=await fetch('holes.json?v=20261016-silver42');if(!response.ok)throw Error('孔位資料讀取失敗，請重新整理。');holes=await response.json();
   for(const h of holes){h.points=Object.fromEntries(['front','back'].map(f=>[f,maps[f](h.raw[f])]));byId.set(h.id,h);const option=document.createElement('option');option.value=h.label;$('holeOptions').append(option);}
   await Promise.all(['front','back'].map(f=>new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>{imageCache[f]=img;resolve();};img.onerror=()=>reject(Error('電路板照片載入失敗，請重新整理。'));img.src=`board-${f}.jpg`;})));
   try{const saved=localStorage.getItem(key);if(saved)wires=validateProject(JSON.parse(saved),new Set(byId.keys()));}catch{notify('舊存檔無法讀取，已開啟空白練習。');}
