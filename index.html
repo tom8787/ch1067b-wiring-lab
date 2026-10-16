@@ -36,7 +36,7 @@
     <footer><span>練習重點 <b>辨認孔位</b><span>→</span><b>正反面對照</b><span>→</span><b>建立接線</b></span><span>孔位座標以正面絲印為準 · 翻面後維持同一孔位</span></footer>
   </main>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <dialog id="helpDialog"><button class="dialog-close" aria-label="關閉說明">×</button><div class="eyebrow">GETTING STARTED</div><h2>你的第一條接線</h2><ol class="help-steps"><li><b>選起點與終點</b><p>點選兩個孔位即可接線。也能直接輸入 A1、A5 等座標，再按「建立接線」。</p></li><li><b>翻面核對位置</b><p>切換正面與反面，同一條導線和相同孔位會同步對應。座標統一使用正面絲印。</p></li><li><b>修改與保存</b><p>點接線清單可選取導線，按刪除按鈕移除。支援復原、重做與 JSON 練習檔匯入匯出。</p></li></ol><div class="help-note">本版涵蓋矩陣孔與旁邊 20 個接點；USB 與表面黏著焊盤尚未開放接線。照片孔位仍需實板核對，網站目前不提供正式考試評分。</div><button id="startGuide" class="primary">開始操作教學 →</button></dialog>
+  <dialog id="helpDialog"><button class="dialog-close" aria-label="關閉說明">×</button><div class="eyebrow">GETTING STARTED</div><h2>你的第一條接線</h2><ol class="help-steps"><li><b>選起點與終點</b><p>點選兩個孔位即可接線。也能直接輸入 A1、A5 等座標，再按「建立接線」。</p></li><li><b>翻面核對位置</b><p>切換正面與反面，同一條導線和相同孔位會同步對應。座標統一使用正面絲印；上緣、下緣也以正面文字朝向為準。</p></li><li><b>修改與保存</b><p>點接線清單可選取導線，按刪除按鈕移除。支援復原、重做與 JSON 練習檔匯入匯出。</p></li></ol><div class="help-note">本版涵蓋矩陣孔、旁邊 20 個接點與邊緣 31 個排針孔；USB 與表面黏著焊盤尚未開放接線。照片孔位仍需實板核對，網站目前不提供正式考試評分。</div><button id="startGuide" class="primary">開始操作教學 →</button></dialog>
   <dialog id="clearDialog"><h2>清空這次的接線？</h2><p>所有導線將移除；清空後仍可按「復原」恢復。</p><div class="dialog-actions"><button id="keepWires" class="outline">保留接線</button><button id="confirmClear" class="primary">清空接線</button></div></dialog>
-  <script type="module" src="app.mjs"></script>
+  <script type="module" src="app.mjs?v=20261016-edge31"></script>
 </body></html>
