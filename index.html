@@ -4,7 +4,7 @@
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="以 CH-1067B 實板照片練習孔位辨識、正反面對照及模擬接線。">
   <title>接線練習室｜電腦硬體裝修乙級</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=20261016-route1">
 </head>
 <body>
   <header class="topbar">
@@ -18,8 +18,8 @@
     <div class="workspace">
       <section class="bench" aria-label="互動電路板">
         <div class="bench-toolbar"><div class="face-tabs"><button id="backFace" class="active" aria-pressed="true">反面 <span>焊接面</span></button><button id="frontFace" aria-pressed="false">正面 <span>零件面</span></button></div><div class="board-actions"><button id="undo" title="復原 Ctrl+Z" aria-label="復原">↶</button><button id="redo" title="重做 Ctrl+Shift+Z" aria-label="重做">↷</button><span></span><button id="zoomOut" aria-label="縮小">−</button><button id="zoomReset" title="重設縮放">100%</button><button id="zoomIn" aria-label="放大">＋</button></div></div>
-        <div id="boardViewport" class="board-viewport"><div id="boardStage" class="board-stage"><canvas id="photo" width="1200" height="960" aria-label="CH-1067B 電路板實照"></canvas><svg id="board" viewBox="0 0 1000 800" aria-label="點選孔位建立接線"><g id="components" pointer-events="none" aria-label="原有零件位置"></g><g id="wires"></g><g id="targets"></g><g id="holes"></g><g id="markers" pointer-events="none"></g></svg></div><div class="board-corner"><span class="live-dot"></span><span id="faceLabel">BACK / 焊接面</span><span style="margin-left:14px;color:#cbd2d8;letter-spacing:0">銀色點＝原有零件</span></div></div>
-        <div class="bench-status"><span><i></i><span id="instruction">點選任一孔位，開始第一條接線</span></span><span>孔位 <b id="hoverLabel">—</b><span class="status-divider">|</span><b id="wireCount">0</b> 條接線</span></div>
+        <div id="boardViewport" class="board-viewport"><div id="boardStage" class="board-stage"><canvas id="photo" width="1200" height="960" aria-label="CH-1067B 電路板實照"></canvas><svg id="board" viewBox="0 0 1000 800" aria-label="點選孔位建立接線"><g id="components" pointer-events="none" aria-label="原有零件位置"></g><g id="wires"></g><g id="targets"></g><g id="holes"></g><g id="wireHandles" aria-label="導線路徑調整點"></g><g id="markers" pointer-events="none"></g></svg></div><div class="board-corner"><span class="live-dot"></span><span id="faceLabel">BACK / 焊接面</span><span style="margin-left:14px;color:#cbd2d8;letter-spacing:0">銀色點＝原有零件</span></div></div>
+        <p class="route-hint">調整路徑：先在「我的接線」選取導線，再拖曳板上的圓點，繞開其他孔位。</p><div class="bench-status"><span><i></i><span id="instruction">點選任一孔位，開始第一條接線</span></span><span>孔位 <b id="hoverLabel">—</b><span class="status-divider">|</span><b id="wireCount">0</b> 條接線</span></div>
       </section>
       <aside>
         <section class="panel connect-panel"><div class="section-title"><h2>建立接線</h2><span class="step-badge">01 → 02</span></div><p class="muted">先選起點，再選終點。也可輸入孔位。</p>
@@ -29,14 +29,14 @@
           <button id="addWire" class="primary">建立接線 <span>＋</span></button><button id="cancel" class="cancel">取消目前選取 <kbd>Esc</kbd></button>
         </section>
         <section id="guidePanel" class="panel guide-panel" hidden><div class="section-title"><h2>操作教學</h2><span id="guideProgress">0 / 3</span></div><p class="muted">以下是滑鼠操作示範，不是考題答案。</p><ol id="guideSteps"></ol><p id="guideMessage">跟著板上光圈，依序點選兩個孔位。</p></section>
-        <section class="panel wire-panel"><div class="section-title"><h2>我的接線 <span id="listCount">00</span></h2><button id="clear" class="text-button">清空</button></div><div id="wireList" class="wire-list"></div><div id="selectedWire" hidden><button id="deleteSelected" class="danger">刪除選取的導線</button></div><button id="network" class="network-button">查看所選孔位的導線連通</button><p class="micro">連通顯示僅包含你畫的導線；未納入板上既有銅箔。</p></section>
+        <section class="panel wire-panel"><div class="section-title"><h2>我的接線 <span id="listCount">00</span></h2><button id="clear" class="text-button">清空</button></div><div id="wireList" class="wire-list"></div><div id="selectedWire" hidden><p class="route-edit-help">拖曳實心點調整轉折；拖曳空心點新增轉折。雙擊實心點可刪除，方向鍵可微調。</p><button id="resetRoute" class="network-button">重設所選導線路徑</button><button id="deleteSelected" class="danger">刪除選取的導線</button></div><button id="network" class="network-button">查看所選孔位的導線連通</button><p class="micro">連通顯示僅包含你畫的導線；未納入板上既有銅箔。</p></section>
         <section class="note"><span class="note-icon">i</span><div><strong>先練接線，再對照電路圖</strong><p>已依照片建立孔位。取得電路圖後，可加入漏接、錯接與短路判定。</p></div></section>
       </aside>
     </div>
     <footer><span>練習重點 <b>辨認孔位</b><span>→</span><b>正反面對照</b><span>→</span><b>建立接線</b></span><span>孔位座標以正面絲印為準 · 翻面後維持同一孔位</span></footer>
   </main>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <dialog id="helpDialog"><button class="dialog-close" aria-label="關閉說明">×</button><div class="eyebrow">GETTING STARTED</div><h2>你的第一條接線</h2><ol class="help-steps"><li><b>選起點與終點</b><p>點選兩個孔位即可接線。也能直接輸入 A1、A5 等座標，再按「建立接線」。</p></li><li><b>翻面核對位置</b><p>切換正面與反面，同一條導線和相同孔位會同步對應。座標統一使用正面絲印；上緣、下緣也以正面文字朝向為準。</p></li><li><b>修改與保存</b><p>點接線清單可選取導線，按刪除按鈕移除。支援復原、重做與 JSON 練習檔匯入匯出。</p></li></ol><div class="help-note">本版包含 USB 區 8 個焊孔及旁邊兩排延伸孔。USB 接點 A～D 是練習用編號，不代表正式腳位功能；固定孔另行標示，不推定電氣連通。表面黏著焊盤尚未開放接線，網站目前不提供正式考試評分。</div><button id="startGuide" class="primary">開始操作教學 →</button></dialog>
+  <dialog id="helpDialog"><button class="dialog-close" aria-label="關閉說明">×</button><div class="eyebrow">GETTING STARTED</div><h2>你的第一條接線</h2><ol class="help-steps"><li><b>選起點與終點</b><p>點選兩個孔位即可接線。也能直接輸入 A1、A5 等座標，再按「建立接線」。</p></li><li><b>翻面核對位置</b><p>切換正面與反面，同一條導線和相同孔位會同步對應。座標統一使用正面絲印；上緣、下緣也以正面文字朝向為準。</p></li><li><b>修改與保存</b><p>點接線清單可選取導線，按刪除按鈕移除。選取接線後，可拖曳實心點調整路徑，或拖曳線段上的空心點新增轉折，避開其他孔位。雙擊實心點可刪除轉折，方向鍵可微調。支援復原、重做與 JSON 練習檔匯入匯出。</p></li></ol><div class="help-note">本版包含 USB 區 8 個焊孔及旁邊兩排延伸孔。USB 接點 A～D 是練習用編號，不代表正式腳位功能；固定孔另行標示，不推定電氣連通。表面黏著焊盤尚未開放接線，網站目前不提供正式考試評分。</div><button id="startGuide" class="primary">開始操作教學 →</button></dialog>
   <dialog id="clearDialog"><h2>清空這次的接線？</h2><p>所有導線將移除；清空後仍可按「復原」恢復。</p><div class="dialog-actions"><button id="keepWires" class="outline">保留接線</button><button id="confirmClear" class="primary">清空接線</button></div></dialog>
-  <script type="module" src="app.mjs?v=20261016-silver42"></script>
+  <script type="module" src="app.mjs?v=20261016-route1"></script>
 </body></html>

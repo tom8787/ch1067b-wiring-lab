@@ -1,10 +1,11 @@
-import {ROWS,homography,corners,rectangle,connected,validateProject} from './core.mjs';
+import {ROWS,homography,corners,rectangle,connected,validateProject} from './core.mjs?v=20261016-route1';
 const $=id=>document.getElementById(id),NS='http://www.w3.org/2000/svg';
 const colors=[['#f3ad48','琥珀黃'],['#f36d60','珊瑚紅'],['#6aaeff','天空藍'],['#b69aff','薰衣紫'],['#62d2ab','薄荷綠']];
 const key='ch1067b-wiring-v1';
 let holes=[],byId=new Map(),wires=[],undoStack=[],redoStack=[],start=null,end=null,selected=null,face='back',color=colors[0][0],route='elbow',zoom=1,mode='free',network=false,toastTimer;
 const guides=[['A1','A5'],['D3','H3'],['K6','K10']];
 const imageCache={};
+let wireDrag=null;
 const maps=Object.fromEntries(['front','back'].map(f=>[f,homography(corners[f],rectangle)]));
 function svg(tag,attrs={},text){const el=document.createElementNS(NS,tag);for(const[k,v]of Object.entries(attrs))el.setAttribute(k,v);if(text!=null)el.textContent=text;return el;}
 function notify(message){$('toast').textContent=message;$('toast').classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('visible'),3500);}
@@ -15,7 +16,26 @@ function commit(){persist();renderWires();updateHistory();renderGuides();}
 function viewSize(){return face==='back'?[800,1000]:[1000,800];}
 function orient([x,y]){return face==='back'?[y,1000-x]:[x,y];}
 function point(id){return orient(byId.get(id).points[face]);}
-function path(w){const a=byId.get(w.a).points[face],b=byId.get(w.b).points[face];return (w.route==='straight'?[a,b]:[a,[b[0],a[1]],b]).map(orient).map((p,i)=>`${i?'L':'M'}${p}`).join(' ');}
+function canonicalPoint(p){return face==='back'?[1000-p[0],p[1]]:[...p];}
+function wireVertices(w){const a=byId.get(w.a).points[face],b=byId.get(w.b).points[face];return w.bends!==undefined?[a,...w.bends.map(canonicalPoint),b]:w.route==='straight'?[a,b]:[a,[b[0],a[1]],b];}
+function path(w){return wireVertices(w).map(orient).map((p,i)=>`${i?'L':'M'}${p}`).join(' ');}
+function editableBends(w){return wireVertices(w).slice(1,-1).map(canonicalPoint);}
+function renderHandles(){
+  $('wireHandles').replaceChildren();const w=wires.find(w=>w.id===selected);if(!w)return;
+  const vertices=wireVertices(w);const handle=(p,index,insert)=>{const[x,y]=orient(p),el=svg('circle',{cx:x,cy:y,r:insert?6:8,class:insert?'bend-handle insert-handle':'bend-handle','data-index':index,'data-insert':insert,role:'button',tabindex:0,'aria-label':`${insert?'拖曳新增轉折點':'拖曳轉折點'} ${index+1}`});
+    el.append(svg('title',{},insert?'拖曳新增轉折點':'拖曳調整；雙擊刪除此轉折點'));el.onpointerdown=e=>{if(e.button!==0||wireDrag)return;e.preventDefault();e.stopPropagation();wireDrag={id:w.id,index,insert,x:e.clientX,y:e.clientY,moved:false,pointerId:e.pointerId};};
+    if(!insert)el.ondblclick=e=>{e.preventDefault();snapshot();w.bends=editableBends(w);w.bends.splice(index,1);commit();};
+    el.onkeydown=e=>{const delta={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];if(!delta)return;e.preventDefault();if(insert&&editableBends(w).length>=32)return notify('每條導線最多 32 個轉折點。');snapshot();w.bends=editableBends(w);if(insert)w.bends.splice(index,0,canonicalPoint(p));const display=orient(canonicalPoint(w.bends[index]));display[0]+=delta[0]*(e.shiftKey?20:5);display[1]+=delta[1]*(e.shiftKey?20:5);w.bends[index]=fromDisplay(display);commit();$('wireHandles').querySelector(`[data-index="${index}"][data-insert="false"]`)?.focus();};$('wireHandles').append(el);};
+  for(let i=0;i<vertices.length-1;i++){const a=vertices[i],b=vertices[i+1];if(Math.hypot(b[0]-a[0],b[1]-a[1])>2)handle([(a[0]+b[0])/2,(a[1]+b[1])/2],i,true);}
+  vertices.slice(1,-1).forEach((p,i)=>handle(p,i,false));
+}
+function fromDisplay([x,y]){const p=face==='back'?[y,x]:[x,y];return [Math.max(0,Math.min(1000,p[0])),Math.max(0,Math.min(800,p[1]))];}
+function moveWireDrag(e){
+  if(!wireDrag||wireDrag.pointerId!==e.pointerId)return;const w=wires.find(w=>w.id===wireDrag.id);if(!w)return;
+  if(!wireDrag.moved){if(Math.hypot(e.clientX-wireDrag.x,e.clientY-wireDrag.y)<3)return;const bends=editableBends(w);if(wireDrag.insert&&bends.length>=32){wireDrag=null;return notify('每條導線最多 32 個轉折點。');}snapshot();w.bends=bends;if(wireDrag.insert)w.bends.splice(wireDrag.index,0,[0,0]);wireDrag.moved=true;$('board').setPointerCapture(e.pointerId);}
+  const matrix=$('board').getScreenCTM();if(!matrix)return;const p=new DOMPoint(e.clientX,e.clientY).matrixTransform(matrix.inverse());w.bends[wireDrag.index]=fromDisplay([p.x,p.y]);renderWires();
+}
+function finishWireDrag(e){if(!wireDrag||wireDrag.pointerId!==e.pointerId)return;const moved=wireDrag.moved;wireDrag=null;if($('board').hasPointerCapture(e.pointerId))$('board').releasePointerCapture(e.pointerId);if(moved){commit();notify('已儲存導線路徑，可復原');}}
 function normalize(value){const s=value.trim().toUpperCase().replace(/\s+/g,'');if(byId.has(s))return s;const found=holes.find(h=>h.label.toUpperCase().replace(/\s+/g,'')===s);return found?.id||null;}
 function setStart(id){start=id;end=null;selected=null;network=false;$('startPoint').value=byId.get(id).label;$('endPoint').value='';renderSelection();$('instruction').textContent=`起點 ${byId.get(id).label}：請選擇終點`;renderWires();}
 function cancel(){start=null;end=null;selected=null;network=false;$('startPoint').value='';$('endPoint').value='';$('instruction').textContent='點選任一孔位，開始第一條接線';renderSelection();renderWires();}
@@ -55,6 +75,7 @@ function renderWires(){
   }
   if(!wires.length){const empty=document.createElement('div');empty.className='wire-empty';empty.innerHTML='<strong>你的第一條線，從這裡開始</strong>點選板上兩個孔位，即可建立接線。';$('wireList').append(empty);}
   $('wireCount').textContent=wires.length;$('listCount').textContent=String(wires.length).padStart(2,'0');$('selectedWire').hidden=selected===null;$('clear').disabled=!wires.length;
+  renderHandles();
 }
 function renderGuides(){
   $('guidePanel').hidden=mode!=='guide';$('targets').replaceChildren();
@@ -84,13 +105,15 @@ function undo(){if(!undoStack.length)return;redoStack.push(structuredClone(wires
 function redo(){if(!redoStack.length)return;undoStack.push(structuredClone(wires));wires=redoStack.pop();cancel();commit();notify('已重做');}
 function deleteSelected(){if(selected===null)return;snapshot();wires=wires.filter(w=>w.id!==selected);cancel();commit();notify('已刪除接線，可按復原恢復');}
 async function init(){
-  const response=await fetch('holes.json?v=20261016-silver42');if(!response.ok)throw Error('孔位資料讀取失敗，請重新整理。');holes=await response.json();
+  const response=await fetch('holes.json?v=20261016-route1');if(!response.ok)throw Error('孔位資料讀取失敗，請重新整理。');holes=await response.json();
   for(const h of holes){h.points=Object.fromEntries(['front','back'].map(f=>[f,maps[f](h.raw[f])]));byId.set(h.id,h);const option=document.createElement('option');option.value=h.label;$('holeOptions').append(option);}
   await Promise.all(['front','back'].map(f=>new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>{imageCache[f]=img;resolve();};img.onerror=()=>reject(Error('電路板照片載入失敗，請重新整理。'));img.src=`board-${f}.jpg`;})));
   try{const saved=localStorage.getItem(key);if(saved)wires=validateProject(JSON.parse(saved),new Set(byId.keys()));}catch{notify('舊存檔無法讀取，已開啟空白練習。');}
   colors.forEach(([value,name])=>{const b=document.createElement('button');b.style.background=value;b.setAttribute('aria-label',name);b.setAttribute('title',name);b.setAttribute('aria-pressed',value===color);b.classList.toggle('active',value===color);b.onclick=()=>{color=value;$('colorName').textContent=name;for(const el of $('colors').children){el.classList.toggle('active',el===b);el.setAttribute('aria-pressed',el===b);}};$('colors').append(b);});
   $('backFace').onclick=()=>setFace('back');$('frontFace').onclick=()=>setFace('front');$('freeMode').onclick=()=>setMode('free');$('guideMode').onclick=()=>setMode('guide');
   $('addWire').onclick=addWire;$('cancel').onclick=cancel;$('undo').onclick=undo;$('redo').onclick=redo;$('deleteSelected').onclick=deleteSelected;
+  $('board').addEventListener('pointermove',moveWireDrag);for(const event of ['pointerup','pointercancel','lostpointercapture'])$('board').addEventListener(event,finishWireDrag);
+  $('resetRoute').onclick=()=>{const w=wires.find(w=>w.id===selected);if(!w)return;snapshot();delete w.bends;commit();notify('已重設導線路徑，可復原');};
   $('zoomIn').onclick=()=>setZoom(zoom+.25);$('zoomOut').onclick=()=>setZoom(zoom-.25);$('zoomReset').onclick=()=>setZoom(1);
   for(const next of ['elbow','straight'])$(next).onclick=()=>{route=next;for(const id of ['elbow','straight']){$(id).classList.toggle('active',next===id);$(id).setAttribute('aria-pressed',next===id);}};
   $('startPoint').addEventListener('change',()=>{const id=normalize($('startPoint').value);if(id){start=id;selected=null;network=false;renderSelection();renderWires();}});

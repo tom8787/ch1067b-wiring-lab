@@ -30,6 +30,7 @@ export function validateProject(data,ids) {
   return data.wires.map((w,i)=>{
     if(!ids.has(w.a)||!ids.has(w.b)||w.a===w.b||!colors.includes(w.color)||!['straight','elbow'].includes(w.route)) throw Error('練習檔含有無效孔位或接線。');
     const key=[w.a,w.b].sort().join('|');if(seen.has(key))throw Error('練習檔含有重複接線。');seen.add(key);
-    return {id:i+1,a:w.a,b:w.b,color:w.color,route:w.route};
+    if(w.bends!==undefined&&(!Array.isArray(w.bends)||w.bends.length>32||w.bends.some(p=>!Array.isArray(p)||p.length!==2||!p.every(Number.isFinite)||p[0]<0||p[0]>1000||p[1]<0||p[1]>800)))throw Error('練習檔含有無效的導線轉折點。');
+    return {id:i+1,a:w.a,b:w.b,color:w.color,route:w.route,...(w.bends!==undefined?{bends:w.bends.map(p=>[...p])}:{})};
   });
 }

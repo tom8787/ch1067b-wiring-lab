@@ -18,5 +18,9 @@ assert.deepEqual([...connected(graph,'A1')].sort(),['A1','A2','A3']);assert.deep
 assert.equal(validateProject({format:'ch1067b-wiring-v1',wires:graph},ids).length,4);
 assert.equal(validateProject({format:'ch1067b-wiring-v1',wires:[wire('TOP:18','BOTTOM:11',1),wire('TOP:EXT','A1',2)]},ids).length,2);
 assert.equal(validateProject({format:'ch1067b-wiring-v1',wires:[wire('USB:A','EXT1:1',1),wire('USB:M4','A1',2)]},ids).length,2);
+const custom={...wire('A1','A5',1),bends:[[200,150],[200,320],[450,320]]};
+const restored=validateProject(JSON.parse(JSON.stringify({format:'ch1067b-wiring-v1',wires:[custom]})),ids);
+assert.deepEqual(restored[0].bends,custom.bends);restored[0].bends[0][0]=210;assert.equal(custom.bends[0][0],200);
+for(const bends of [[[Infinity,2]],[[-1,2]],[[2,801]],[[2]],'invalid',Array(33).fill([2,3])])assert.throws(()=>validateProject({format:'ch1067b-wiring-v1',wires:[{...custom,bends}]},ids));
 assert.throws(()=>validateProject({format:'ch1067b-wiring-v1',wires:[wire('A1','ZZ1',1)]},ids));assert.throws(()=>validateProject({format:'ch1067b-wiring-v1',wires:[wire('A1','A2',1),wire('A2','A1',2)]},ids));assert.throws(()=>validateProject({format:'other',wires:[]},ids));
 console.log('PASS: 531 unique endpoints including USB contacts, USB mounting pads and extension rows, photograph transforms, mirrored correspondence, connectivity, and old/new endpoint import validation.');
