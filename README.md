@@ -2,7 +2,7 @@
 
 電腦硬體裝修乙級第一站的互動接線練習原型，使用 CH-1067B 電路板正反面實拍照片。
 
-[線上版本（私人）](https://ch1067b-wiring-lab.hsiangchen63.chatgpt.site)
+[開啟接線練習網站（GitHub Pages）](https://tom8787.github.io/ch1067b-wiring-lab/)
 
 ![板面預覽](preview.jpg)
 
